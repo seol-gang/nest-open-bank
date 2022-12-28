@@ -1,0 +1,46 @@
+version: "3.9"
+networks:
+  open-bank-local:
+
+services:
+  main:
+    container_name: open-bank-nestjs
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    env_file:
+      - ./backend/.env
+    command: npm run start:dev
+    volumes:
+      - ./backend:/usr/src/app
+      - ./backend/node_modules:/usr/src/app/node_modules
+    ports:
+      - 5000:5000
+    networks:
+      - open-bank-local
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:13.2
+    container_name: open-bank-postgres
+    restart: always
+    networks:
+      - open-bank-local
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: open-bank
+    ports:
+      - 5432:5432
+    volumes:
+      - ./backend/data/postgres:/var/lib/postgresql/data
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    volumes:
+      - ./frontend:/usr/src/frontend
+    ports:
+      - 3000:3000
